@@ -1,0 +1,10 @@
+{
+  "version": "1.0.0.3",
+  "timestamp": 1691403168338,
+  "files": [
+    ["main/index.js", "60a2003eb335bd4b164857c2799c3013"],
+    ["other/index.js", "634250f4d38c0d27da23fed5e258601b"],
+    ["renderer/index.js", "86725113be78e0665a9b5ca2b46e7e14"],
+    ["other/test/index.js", "fe197760dee8fafb9684697ef2a8ad33"]
+  ]
+}
