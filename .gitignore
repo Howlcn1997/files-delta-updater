@@ -1,1 +1,5 @@
 node_modules/
+
+test/mock-app/
+test/mock-oss/
+test/mock-src/
