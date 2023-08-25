@@ -15,7 +15,11 @@
   "author": "Neon",
   "license": "ISC",
   "dependencies": {
-    "fs-extra": "^11.1.1",
+    "axios": "^1.4.0",
+    "download": "^8.0.0",
+    "fs-extra": "^11.1.1"
+  },
+  "devDependencies": {
     "semver": "^7.5.4"
   }
 }
