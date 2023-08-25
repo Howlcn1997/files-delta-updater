@@ -20,6 +20,7 @@
     "fs-extra": "^11.1.1"
   },
   "devDependencies": {
+    "live-server": "^1.2.2",
     "semver": "^7.5.4"
   }
 }

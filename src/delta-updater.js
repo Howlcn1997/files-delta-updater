@@ -4,15 +4,18 @@ const fsx = require("fs-extra");
 const download = require("download");
 
 const { request } = require("./utils/request");
+const { createProxy } = require("./utils/createProxy");
 const { generateFilesJSON, diffFilesJSON } = require("./utils/tools");
 
 class DeltaUpdater extends EventEmitter {
-  constructor({ localRootPath, remoteRootUrl, currentVersion }) {
+  constructor({ localRootPath, remoteRootUrl, currentVersion, clearOldVersion }) {
     super();
     this.localRootPath = localRootPath;
     this.remoteRootUrl = remoteRootUrl;
     this.currentVersion = currentVersion;
     this.manifestJSON = null;
+    this.clearOldVersion = clearOldVersion || true;
+    return createProxy(this, this.handleError.bind(this));
   }
 
   async checkUpdate() {
@@ -36,13 +39,13 @@ class DeltaUpdater extends EventEmitter {
 
     // 版本判断
     if (localManifest.version === remoteVersionJSON.version) {
-      this.emit("not-available", { reason: "version", message: "" });
+      this.emit("not-available", { reason: "Already the latest version" });
       return "not-available--version";
     }
     // 灰度判断
     const stagingPercentage = 100;
     if (stagingPercentage > remoteVersionJSON.stagingPercentage) {
-      this.emit("not-available", { reason: "staging" });
+      this.emit("not-available", { reason: "Not in grayRelease range" });
       return "not-available--staging";
     }
 
@@ -56,7 +59,28 @@ class DeltaUpdater extends EventEmitter {
     return "success";
   }
 
-  async switchToLatestVersion() {}
+  async switchToLatestVersion() {
+    const manifestJSON = await this.getManifestJSON();
+    if (manifestJSON.nextVersion) {
+      const nextLocalVersionDir = path.join(this.localRootPath, "versions", manifestJSON.nextVersion);
+      const isExist = await fsx.pathExists(nextLocalVersionDir);
+      if (!isExist) {
+        manifestJSON.nextVersion = "";
+      } else {
+        Object.assign(manifestJSON, {
+          version: manifestJSON.nextVersion,
+          oldVersion: manifestJSON.version,
+          nextVersion: "",
+        });
+      }
+      await this.setManifestJSON(manifestJSON);
+      if (this.clearOldVersion) {
+        this.clearOldVersions();
+      }
+      return true;
+    }
+    return false;
+  }
 
   async getManifestJSON() {
     if (this.manifestJSON) return this.manifestJSON;
@@ -102,7 +126,6 @@ class DeltaUpdater extends EventEmitter {
     const diffFilesJsonData = diffFilesJSON(currentFilesJSON, nextFilesJSON);
     // 下载差异文件
     const downloadedFilepaths = await this.downloadFilesByFilesJSON(diffFilesJsonData, downloadRootDir);
-    this.emit("downloaded", { total: diffFilesJsonData.files.length, process: diffFilesJsonData.files.length });
 
     // 合并本地当前版本的文件和下载的差异文件，生成下一个版本的文件目录列表
     const files = {};
@@ -140,9 +163,9 @@ class DeltaUpdater extends EventEmitter {
     );
 
     // 清理download文件夹
-    await fsx.emptyDir(downloadRootDir);
+    await fsx.remove(downloadRootDir);
     await this.setManifestJSON({ nextVersion });
-    this.emit("usable", { currentVersion, nextVersion, nextLocalVersionDir });
+    this.emit("downloaded", { currentVersion, nextVersion, nextLocalVersionDir });
   }
 
   async requestRemoteFilesJSON(version) {
@@ -168,7 +191,7 @@ class DeltaUpdater extends EventEmitter {
         const downloadFilepath = path.join(downloadVersionDir, relativePath);
 
         return download(assetUrl, path.dirname(downloadFilepath)).then(() => {
-          that.emit("downloading", { total, process: ++process });
+          that.emit("download", { total, process: ++process });
           return [relativePath, downloadFilepath];
         });
       })
@@ -182,26 +205,14 @@ class DeltaUpdater extends EventEmitter {
     await Promise.all(oldVersions.map((version) => fsx.remove(path.join(this.localRootPath, "versions", version))));
   }
 
-  async getCurrentVersionPath() {
+  async getLatestVersionThenSwitch() {
+    await this.switchToLatestVersion();
     const manifestJSON = await this.getManifestJSON();
-    if (manifestJSON.nextVersion) {
-      const nextLocalVersionDir = path.join(this.localRootPath, "versions", manifestJSON.nextVersion);
-      const isExist = await fsx.pathExists(nextLocalVersionDir);
-      if (!isExist) {
-        manifestJSON.nextVersion = "";
-      } else {
-        Object.assign(manifestJSON, {
-          version: manifestJSON.nextVersion,
-          oldVersion: manifestJSON.version,
-          nextVersion: "",
-        });
-      }
-      await this.setManifestJSON(manifestJSON);
-      // this.clearOldVersions()
-      //   .then(() => {})
-      //   .catch(() => {});
-    }
     return path.join(this.localRootPath, "versions", manifestJSON.version);
+  }
+
+  handleError(error) {
+    this.emit("error", error);
   }
 }
 

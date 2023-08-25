@@ -1,4 +1,7 @@
-const { generateFilesJSON } = require("../../src/utils/tools");
 const path = require("path");
+const { generateFilesJSON } = require("../src/utils/tools");
 
-generateFilesJSON(path.join(__dirname, "../local/versions/1.0.0.1"), "1.0.0.1").then(console.log);
+const version = "1.0.0.3";
+const versionDir = path.join(__dirname, `mock-oss/versions/${version}`);
+
+generateFilesJSON(versionDir, version).then((res) => console.log(JSON.stringify(res)));
