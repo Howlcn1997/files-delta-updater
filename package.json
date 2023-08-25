@@ -1,6 +1,7 @@
 {
   "name": "files-delta-updater",
-  "version": "0.0.1",
+  "version": "0.0.2",
+  "author": "Neon",
   "description": "",
   "main": "./src/index.js",
   "scripts": {
@@ -12,8 +13,6 @@
     "update",
     "file"
   ],
-  "author": "Neon",
-  "license": "ISC",
   "dependencies": {
     "axios": "^1.4.0",
     "download": "^8.0.0",
@@ -22,5 +21,14 @@
   "devDependencies": {
     "live-server": "^1.2.2",
     "semver": "^7.5.4"
-  }
+  },
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Howlcn1997/files-delta-updater.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Howlcn1997/files-delta-updater/issues"
+  },
+  "homepage": "https://github.com/Howlcn1997/files-delta-updater"
 }
