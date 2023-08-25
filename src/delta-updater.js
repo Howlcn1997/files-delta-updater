@@ -4,7 +4,7 @@ const fsx = require("fs-extra");
 const download = require("download");
 
 const { request } = require("./utils/request");
-const { createProxy } = require("./utils/createProxy");
+const { createProxy } = require("./utils/create-proxy");
 const { generateFilesJSON, diffFilesJSON } = require("./utils/tools");
 
 class DeltaUpdater extends EventEmitter {
