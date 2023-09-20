@@ -1,9 +1,9 @@
-function createProxy(target, errorHandle) {
+export function createProxy(target, errorHandle) {
   const proxy = createExceptionProxy(errorHandle);
   return new Proxy(target, { get: proxy });
 }
 
-function createExceptionProxy(errorHandle) {
+export function createExceptionProxy(errorHandle) {
   return (target, prop) => {
     if (!(prop in target)) return;
 
@@ -24,5 +24,3 @@ function createExceptionProxy(errorHandle) {
     return target[prop];
   };
 }
-
-module.exports = { createProxy, createExceptionProxy };

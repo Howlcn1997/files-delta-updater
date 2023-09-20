@@ -1,5 +1,6 @@
-const path = require("path");
-const fsx = require("fs-extra");
+import path from "path";
+import fsx from "fs-extra";
+import { DiffFilesJSON, FilesJSON } from "./types";
 
 /**
  * @param {String} root 根目录
@@ -7,7 +8,7 @@ const fsx = require("fs-extra");
  *
  * @return {Object} files.json
  */
-async function generateFilesJSON(root, version) {
+export async function generateFilesJSON(root, version): Promise<FilesJSON> {
   const filepaths = await fsBFS(root);
   const hashResults = await Promise.all(filepaths.map((filepath) => calculateFileMD5(path.join(root, filepath))));
 
@@ -15,7 +16,7 @@ async function generateFilesJSON(root, version) {
     path.posix.join(...filepath.split(/\\/)),
     hashResults[index],
   ]);
-  
+
   return {
     version,
     timestamp: Date.now(),
@@ -29,7 +30,7 @@ async function generateFilesJSON(root, version) {
  *
  * @return {Object} files.json
  */
-function diffFilesJSON(jsonA, jsonB) {
+export function diffFilesJSON(jsonA: FilesJSON, jsonB: FilesJSON): DiffFilesJSON {
   const jsonAMap = {};
   jsonA.files.forEach(([relativePath, hash]) => (jsonAMap[relativePath] = hash));
   const diffFiles = jsonB.files.filter(([relativePath, hash]) => {
@@ -48,11 +49,13 @@ function diffFilesJSON(jsonA, jsonB) {
  * 广度优先遍历文件目录
  * @return {Array<string>} 返回文件路径数组 不包含空文件夹
  */
-async function fsBFS(rootPath, withFn) {
-  const result = [];
-  const queue = [""];
+export async function fsBFS(rootPath: string, withFn?: Function): Promise<string[]> {
+  const result: string[] = [];
+  const queue: string[] = [""];
   while (queue.length) {
     const currentPath = queue.shift();
+    if (currentPath === undefined) continue;
+
     const currentRelativePath = path.join(rootPath, currentPath);
 
     const isDirectory = (await fsx.stat(currentRelativePath)).isDirectory();
@@ -72,7 +75,7 @@ async function fsBFS(rootPath, withFn) {
  * @param {String} filePath
  * @returns {String} MD5 Hash
  */
-function calculateFileMD5(filePath) {
+export function calculateFileMD5(filePath: string): Promise<string> {
   const fs = require("fs");
   const crypto = require("crypto");
   return new Promise((resolve, reject) => {
@@ -88,5 +91,3 @@ function calculateFileMD5(filePath) {
     input.pipe(hash);
   });
 }
-
-module.exports = { generateFilesJSON, diffFilesJSON };

@@ -3,9 +3,11 @@
   "version": "0.0.2",
   "author": "Neon",
   "description": "",
-  "main": "./src/index.js",
+  "main": "./src/index.ts",
   "scripts": {
-    "start": "node ./src/index.js"
+    "start": "tsc ./src/index.ts",
+    "build": "tsc",
+    "test": "tsx ./test/main.ts"
   },
   "keywords": [
     "electron",
@@ -20,7 +22,10 @@
   },
   "devDependencies": {
     "live-server": "^1.2.2",
-    "semver": "^7.5.4"
+    "semver": "^7.5.4",
+    "tsc": "^2.0.4",
+    "tsx": "^3.12.10",
+    "typescript": "^5.2.2"
   },
   "license": "ISC",
   "repository": {

@@ -1,5 +1,5 @@
-const { build } = require("../src/build");
-const path = require("path");
+import { build } from "../src/build";
+import path from "path";
 
 const sourceDir = path.join(__dirname, "mock-src");
 const destDir = path.join(__dirname, "release");

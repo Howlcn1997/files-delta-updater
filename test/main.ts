@@ -1,19 +1,20 @@
-const DeltaUpdater = require("../src/delta-updater.js");
-const path = require("path");
-const liveServer = require("live-server");
+import DeltaUpdater from "../src/delta-updater.js";
+import path from "path";
+import liveServer from "live-server";
 
 const localRootPath = path.join(__dirname, "mock-app");
 const mockOSSDir = path.join(__dirname, "mock-oss");
 const remoteRootUrl = "http://localhost:8080";
 const version = "1.0.0.0";
 
-liveServer.start({ port: 8080, root: mockOSSDir });
+liveServer.start({ port: 8080, root: mockOSSDir, open: false });
 
-const updater = new DeltaUpdater({ localRootPath, remoteRootUrl, open: false });
+const updater = new DeltaUpdater({ localRootPath, remoteRootUrl, clearOldVersion: false });
 
 // 无可用更新
 updater.on("not-available", (...args) => {
   console.log("not-available:", args[0]);
+  process.exit(0);
 });
 
 // 资源正在下载
@@ -32,6 +33,7 @@ updater.on("usable", (...args) => {
 
 updater.on("error", (...args) => {
   console.log("error:", args[0]);
+  process.exit(0);
 });
 
 updater.checkUpdate();

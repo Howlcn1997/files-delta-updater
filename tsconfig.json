@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "types": ["node"],
+    "outDir": "./dest",
+    "sourceMap": true,
+    "target": "es2021",
+    "lib": ["es2021", "DOM", "esnext.asynciterable"],
+    "module": "commonjs",
+    "strict": false,
+    "allowJs": true,
+    "strictNullChecks": false,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "emitDecoratorMetadata": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src"]
+}

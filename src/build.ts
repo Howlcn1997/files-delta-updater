@@ -1,8 +1,8 @@
-const fsx = require("fs-extra");
-const path = require("path");
-const { generateFilesJSON } = require("./utils/tools");
+import fsx from "fs-extra";
+import path from "path";
+import { generateFilesJSON } from "./utils/tools";
 
-async function build(sourceDir, destDir, version, stagingPercentage = 100) {
+export async function build(sourceDir, destDir, version, stagingPercentage = 100) {
   await fsx.emptyDir(destDir);
 
   const filesDir = path.join(destDir, "files");
@@ -17,5 +17,3 @@ async function build(sourceDir, destDir, version, stagingPercentage = 100) {
   // 生成version.json
   await fsx.writeJSON(path.join(destDir, `version.json`), { version, stagingPercentage });
 }
-
-module.exports = { build };

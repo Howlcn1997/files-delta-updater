@@ -1,7 +1,7 @@
-const axios = require("axios");
+import axios from "axios";
 
 const requestInstance = axios.create({ timeout: 1000 });
 
 requestInstance.interceptors.response.use((response) => response.data);
 
-module.exports = { request: requestInstance };
+export const request = requestInstance;
