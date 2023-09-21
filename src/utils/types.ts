@@ -24,3 +24,11 @@ export interface DeltaUpdater {
   remoteRootUrl: string;
   clearOldVersion?: boolean;
 }
+
+export interface BuildReleaseOptions {
+  source: string;
+  dest: string;
+  version: string;
+  channels?: string[];
+  stagingPercentage?: number;
+}

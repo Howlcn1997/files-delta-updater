@@ -4,4 +4,6 @@ dest
 test/mock-app/
 test/mock-oss/
 test/mock-src/
+test/mock-upd/
 test/release/
+test/local/
