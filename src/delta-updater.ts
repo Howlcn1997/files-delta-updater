@@ -10,35 +10,51 @@ import { generateFilesJSON, diffFilesJSON } from "./utils/tools";
 import { FilesJSON, UpdaterConfig, VersionJSON } from "./utils/types";
 
 class DeltaUpdater extends EventEmitter {
+  baseRootPath: string;
   localRootPath: string;
   remoteRootUrl: string;
-  localConfig: null | UpdaterConfig;
+  routerConfig: null | UpdaterConfig;
   clearOldVersion: boolean;
 
-  constructor({ localRootPath, remoteRootUrl, clearOldVersion }) {
+  constructor({ baseRootPath, localRootPath, remoteRootUrl, clearOldVersion = true }) {
     super();
+    this.baseRootPath = baseRootPath;
     this.localRootPath = localRootPath;
     this.remoteRootUrl = remoteRootUrl;
-    this.localConfig = null;
-    this.clearOldVersion = clearOldVersion || true;
+    this.routerConfig = null;
+    this.clearOldVersion = clearOldVersion;
     return createProxy(this, this.handleError.bind(this));
   }
 
-  async checkUpdate() {
-    const [localConfig, remoteVersionJSON] = await Promise.all([this.getConfigJson(), this.requestRemoteVersionJSON()]);
+  public async checkRootDirValid(rootPath) {
+    const versionsExist = await fsx.pathExists(rootPath, "versions");
+    const configExist = await fsx.pathExists(path.join(rootPath, "config.json"));
+    let versions = [];
+    if (versionsExist) {
+      versions = await fsx.readdir(path.join(rootPath, "versions"));
+    }
+    if (versions.length < 0) return false;
+    return true;
+  }
 
-    if (localConfig.nextVersion === remoteVersionJSON.version) {
+  async checkUpdate() {
+    const [routerConfig, remoteVersionJSON] = await Promise.all([
+      this.getConfigJson(),
+      this.requestRemoteVersionJSON(),
+    ]);
+
+    if (routerConfig.nextVersion === remoteVersionJSON.version) {
       this.emit("usable", {
-        curVersion: localConfig.curVersion,
-        nextVersion: localConfig.nextVersion,
-        nextLocalVersionDir: path.join(this.localRootPath, "versions", localConfig.nextVersion),
+        curVersion: routerConfig.curVersion,
+        nextVersion: routerConfig.nextVersion,
+        nextLocalVersionDir: path.join(this.localRootPath, "versions", routerConfig.nextVersion),
       });
       return "usable";
     }
 
     // 版本判断
-    if (localConfig.curVersion === remoteVersionJSON.version) {
-      this.emit("not-available", { reason: `Already the latest version[${localConfig.curVersion}]` });
+    if (routerConfig.curVersion === remoteVersionJSON.version) {
+      this.emit("not-available", { reason: `Already the latest version[${routerConfig.curVersion}]` });
       return "not-available--version";
     }
     // 灰度判断
@@ -48,30 +64,25 @@ class DeltaUpdater extends EventEmitter {
       return "not-available--staging";
     }
 
-    await this.buildNextVersion(
-      this.localRootPath,
-      this.remoteRootUrl,
-      localConfig.curVersion,
-      remoteVersionJSON.version
-    );
+    await this.buildNextVersion(routerConfig.curVersion, remoteVersionJSON.version);
 
     return "success";
   }
 
   async switchToLatestVersion() {
-    const localConfig = await this.getConfigJson();
-    if (localConfig.nextVersion) {
-      const nextLocalVersionDir = path.join(this.localRootPath, "versions", localConfig.nextVersion);
+    const routerConfig = await this.getConfigJson();
+    if (routerConfig.nextVersion) {
+      const nextLocalVersionDir = path.join(this.localRootPath, "versions", routerConfig.nextVersion);
       const isExist = await fsx.pathExists(nextLocalVersionDir);
       if (!isExist) {
-        localConfig.nextVersion = "";
+        routerConfig.nextVersion = "";
       } else {
-        Object.assign(localConfig, {
-          curVersion: localConfig.nextVersion,
+        Object.assign(routerConfig, {
+          curVersion: routerConfig.nextVersion,
           nextVersion: "",
         });
       }
-      await this.updateConfigJson(localConfig);
+      await this.updateConfigJson(routerConfig);
       if (this.clearOldVersion) {
         this.clearOldVersions();
       }
@@ -84,12 +95,11 @@ class DeltaUpdater extends EventEmitter {
    * 获取config.json
    */
   async getConfigJson(): Promise<UpdaterConfig> {
-    if (this.localConfig) return this.localConfig;
+    if (this.routerConfig) return this.routerConfig;
     const configJSONPath = path.join(this.localRootPath, "config.json");
     const isExist = await fsx.pathExists(configJSONPath);
-    if (!isExist) this.localConfig = await this.updateConfigJson();
-    this.localConfig = await fsx.readJSON(configJSONPath);
-    return this.localConfig as UpdaterConfig;
+    this.routerConfig = isExist ? await fsx.readJSON(configJSONPath) : await this.updateConfigJson();
+    return this.routerConfig as UpdaterConfig;
   }
 
   /**
@@ -97,6 +107,9 @@ class DeltaUpdater extends EventEmitter {
    */
   async updateConfigJson(content: Partial<UpdaterConfig> = {}): Promise<UpdaterConfig> {
     const configJSONPath = path.join(this.localRootPath, "config.json");
+
+    const localVersionsPath = path.join(this.localRootPath, "versions");
+
     const isExist = await fsx.pathExists(configJSONPath);
     let jsonContent: UpdaterConfig;
 
@@ -104,7 +117,16 @@ class DeltaUpdater extends EventEmitter {
       const oldJsonContent = await fsx.readJSON(configJSONPath);
       jsonContent = { ...oldJsonContent, ...content };
     } else {
-      const versions = await fsx.readdir(path.join(this.localRootPath, "versions"));
+      await fsx.ensureDir(this.localRootPath);
+
+      const localVersionExits = await fsx.pathExists(localVersionsPath);
+
+      let versions = localVersionExits ? await fsx.readdir(localVersionsPath) : [];
+
+      if (!versions.length) versions = await fsx.readdir(path.join(this.baseRootPath, "versions"));
+
+      if (!versions.length) throw new Error("No version exists");
+
       jsonContent = {
         baseVersion: versions[0],
         curVersion: versions[0],
@@ -114,15 +136,22 @@ class DeltaUpdater extends EventEmitter {
       };
     }
     await fsx.writeJSON(configJSONPath, jsonContent);
-    this.localConfig = jsonContent;
-    return this.localConfig;
+    this.routerConfig = jsonContent;
+    return this.routerConfig;
   }
 
-  async buildNextVersion(localRootPath, remoteRootUrl, currentVersion, nextVersion) {
-    const nextLocalVersionDir = path.join(localRootPath, "versions", nextVersion);
-    const currentVersionDir = path.join(localRootPath, "versions", currentVersion);
+  async buildNextVersion(currentVersion, nextVersion) {
+    const nextLocalVersionDir = path.join(this.localRootPath, "versions", nextVersion);
+    const currentVersionDir = path.join(this.localRootPath, "versions", currentVersion);
 
-    const downloadRootDir = path.join(localRootPath, "downloaded");
+    const downloadRootDir = path.join(this.localRootPath, "downloaded");
+
+    // 初始化localRootPath versions文件夹
+    const versionsExist = await fsx.pathExists(currentVersionDir);
+    if (!versionsExist) {
+      await fsx.emptyDir(path.join(currentVersionDir, ".."));
+      await fsx.symlink(path.join(this.baseRootPath, "versions", currentVersion), currentVersionDir, "junction");
+    }
     // 生成本地当前版本的files.json
     const currentFilesJSON = await generateFilesJSON(currentVersionDir, currentVersion);
     // 获取远程下一个版本的files.json
@@ -131,9 +160,6 @@ class DeltaUpdater extends EventEmitter {
     const diffFilesJsonData = diffFilesJSON(currentFilesJSON, nextFilesJSON);
     // 下载差异文件
     const downloadedFilepaths = await this.downloadFilesByFilesJSON(diffFilesJsonData, downloadRootDir);
-
-    // 合并本地当前版本的文件和下载的差异文件，生成下一个版本的文件目录列表
-    const files = {};
 
     const downloadFilesMap = {};
     downloadedFilepaths.forEach(([relativePath, downloadFilename]) => {
@@ -145,6 +171,7 @@ class DeltaUpdater extends EventEmitter {
       currentFilesMap[relativePath] = path.join(currentVersionDir, relativePath);
     });
 
+    // 合并本地当前版本的文件和下载的差异文件，生成下一个版本的文件目录列表
     const nextVersionFiles = {};
     nextFilesJSON.files.forEach(([relativePath]) => {
       if (downloadFilesMap[relativePath]) {
@@ -204,16 +231,16 @@ class DeltaUpdater extends EventEmitter {
   }
 
   async clearOldVersions() {
-    const localConfig = await this.getConfigJson();
+    const routerConfig = await this.getConfigJson();
     const versions = await fsx.readdir(path.join(this.localRootPath, "versions"));
-    const oldVersions = versions.filter((version) => version !== localConfig.curVersion);
+    const oldVersions = versions.filter((version) => version !== routerConfig.curVersion);
     await Promise.all(oldVersions.map((version) => fsx.remove(path.join(this.localRootPath, "versions", version))));
   }
 
   async getLatestVersionThenSwitch(): Promise<string> {
     await this.switchToLatestVersion();
-    const localConfig = await this.getConfigJson();
-    return path.join(this.localRootPath, "versions", localConfig.curVersion);
+    const routerConfig = await this.getConfigJson();
+    return path.join(this.localRootPath, "versions", routerConfig.curVersion);
   }
 
   private handleError(error) {

@@ -1,4 +1,5 @@
 node_modules/
+dest
 
 test/mock-app/
 test/mock-oss/

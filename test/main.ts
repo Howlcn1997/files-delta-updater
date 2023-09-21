@@ -1,15 +1,17 @@
-import DeltaUpdater from "../src/delta-updater.js";
+import DeltaUpdater from "../src/delta-updater";
 import path from "path";
 import liveServer from "live-server";
 
-const localRootPath = path.join(__dirname, "mock-app");
+const baseRootPath = path.join(__dirname, "mock-app");
+// const localRootPath = path.join(__dirname, "mock-app");
+const localRootPath = path.join(__dirname, "mock-upd");
 const mockOSSDir = path.join(__dirname, "mock-oss");
 const remoteRootUrl = "http://localhost:8080";
 const version = "1.0.0.0";
 
 liveServer.start({ port: 8080, root: mockOSSDir, open: false });
 
-const updater = new DeltaUpdater({ localRootPath, remoteRootUrl, clearOldVersion: false });
+const updater = new DeltaUpdater({ baseRootPath, localRootPath, remoteRootUrl, clearOldVersion: true });
 
 // 无可用更新
 updater.on("not-available", (...args) => {
