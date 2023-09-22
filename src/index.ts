@@ -1,3 +1,3 @@
-import DeltaUpdater from "../src/delta-updater.js";
-
-export default DeltaUpdater;
+import DeltaUpdater from "./delta-updater";
+export { buildRelease, buildLocal } from "./build";
+export { DeltaUpdater };

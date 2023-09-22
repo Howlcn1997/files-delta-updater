@@ -27,7 +27,7 @@ export interface DeltaUpdater {
 
 export interface BuildReleaseOptions {
   source: string;
-  dest: string;
+  dist: string;
   version: string;
   channels?: string[];
   stagingPercentage?: number;

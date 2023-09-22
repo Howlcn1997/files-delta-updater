@@ -8,13 +8,13 @@ const version = "1.0.0.1";
   await buildRelease({
     source,
     version,
-    dest: path.join(__dirname, "release"),
+    dist: path.join(__dirname, "release"),
     stagingPercentage: 80,
     channels: ["x86", "beta"],
   });
   await buildLocal({
     source,
     version,
-    dest: path.join(__dirname, "local"),
+    dist: path.join(__dirname, "local"),
   });
 })();

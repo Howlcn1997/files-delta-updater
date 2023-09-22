@@ -6,13 +6,13 @@ import { BuildReleaseOptions, UpdaterConfig } from "./utils/types";
 // 构建需要发布到文件服务器的资源
 export async function buildRelease({
   source,
-  dest,
+  dist,
   version,
   channels = [],
   stagingPercentage = 100,
 }: BuildReleaseOptions) {
-  await fsx.emptyDir(dest);
-  const destDir = path.join(dest, ...channels);
+  await fsx.emptyDir(dist);
+  const destDir = path.join(dist, ...channels);
 
   const filesDir = path.join(destDir, "files");
   await fsx.emptyDir(filesDir);
@@ -28,18 +28,18 @@ export async function buildRelease({
 }
 
 // 构建本地资源
-export async function buildLocal({ source, dest, version }) {
-  await fsx.emptyDir(dest);
-  const versionsDir = path.join(dest, "versions");
+export async function buildLocal({ source, dist, version }) {
+  await fsx.emptyDir(dist);
+  const versionsDir = path.join(dist, "versions");
 
   await fsx.emptyDir(versionsDir);
 
-  await fsx.copy(source, path.join(dest, "versions", version));
+  await fsx.copy(source, path.join(dist, "versions", version));
   const content: UpdaterConfig = {
     baseVersion: version,
     curVersion: version,
     nextVersion: "",
     onErrorVersions: [],
   };
-  await fsx.writeJSON(path.join(dest, "config.json"), content);
+  await fsx.writeJSON(path.join(dist, "config.json"), content);
 }
