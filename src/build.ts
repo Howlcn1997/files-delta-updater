@@ -10,8 +10,11 @@ export async function buildRelease({
   version,
   channels = [],
   stagingPercentage = 100,
+  emptyDist = true,
 }: BuildReleaseOptions) {
-  await fsx.emptyDir(dist);
+  if (emptyDist) {
+    await fsx.emptyDir(dist);
+  }
   const destDir = path.join(dist, ...channels);
 
   const filesDir = path.join(destDir, "files");
@@ -28,8 +31,10 @@ export async function buildRelease({
 }
 
 // 构建本地资源
-export async function buildLocal({ source, dist, version }) {
-  await fsx.emptyDir(dist);
+export async function buildLocal({ source, dist, version, emptyDist = true }) {
+  if (emptyDist) {
+    await fsx.emptyDir(dist);
+  }
   const versionsDir = path.join(dist, "versions");
 
   await fsx.emptyDir(versionsDir);

@@ -3,19 +3,18 @@ import path from "path";
 import liveServer from "live-server";
 
 const baseRootPath = path.join(__dirname, "mock-app");
-// const localRootPath = path.join(__dirname, "mock-app");
-const localRootPath = path.join(__dirname, "mock-upd");
+// const updateRootPath = path.join(__dirname, "mock-app");
+const updateRootPath = path.join(__dirname, "mock-upd");
 const mockOSSDir = path.join(__dirname, "mock-oss");
 const remoteRootUrl = "http://localhost:8080";
 
 liveServer.start({ port: 8080, root: mockOSSDir, open: false });
 
-const updater = new DeltaUpdater({ baseRootPath, localRootPath, remoteRootUrl, clearOldVersion: true });
+const updater = new DeltaUpdater({ baseRootPath, updateRootPath, remoteRootUrl, clearOldVersion: true });
 
 // 无可用更新
 updater.on("not-available", (...args) => {
   console.log("not-available:", args[0]);
-  process.exit(0);
 });
 
 // 资源正在下载
@@ -33,8 +32,7 @@ updater.on("usable", (...args) => {
 });
 
 updater.on("error", (...args) => {
-  console.log("error:", args[0]);
-  process.exit(0);
+  console.log("error:");
 });
 
 updater.checkUpdate();
