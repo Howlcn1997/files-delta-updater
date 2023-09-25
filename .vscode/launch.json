@@ -9,8 +9,8 @@
       "request": "launch",
       "name": "Test Main",
       "skipFiles": ["<node_internals>/**"],
-      "runtimeExecutable": "C:\\Users\\howlw\\.nvm\\versions\\node\\v16.16.0\\bin\\node",
-      "program": "${workspaceFolder}\\test\\main.js"
+      "runtimeExecutable": "${workspaceFolder}\\node_modules\\.bin\\tsx",
+      "program": "${workspaceFolder}\\test\\main.ts"
     }
   ]
 }

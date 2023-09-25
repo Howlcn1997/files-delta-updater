@@ -1,5 +1,3 @@
-export type Workspace = "base" | "update";
-
 export interface FilesJSON {
   version: string;
   timestamp: number;
@@ -19,7 +17,13 @@ export interface UpdaterConfig {
   curVersion: string; // 安装包当前版本
   nextVersion: string; // 安装包下一个版本
   onErrorVersions: string[]; // 历史错误版本
-  workspace: Workspace; // 安装包工作目录
+}
+
+export interface BuildConfigJson {
+  baseVersion: string; // 安装包初始版本
+  curVersion: string; // 安装包当前版本
+  nextVersion?: string; // 安装包下一个版本
+  onErrorVersions?: string[]; // 历史错误版本
 }
 
 export interface DeltaUpdater {

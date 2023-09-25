@@ -32,7 +32,7 @@ updater.on("usable", (...args) => {
 });
 
 updater.on("error", (...args) => {
-  console.log("error:");
+  console.log("error:", args[0]);
 });
 
 updater.checkUpdate();
