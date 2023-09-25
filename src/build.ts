@@ -45,7 +45,6 @@ export async function buildLocal({ source, dist, version, emptyDist = true }) {
     curVersion: version,
     nextVersion: "",
     onErrorVersions: [],
-    workspace: "base",
   };
   await fsx.writeJSON(path.join(dist, "config.json"), content);
 }
