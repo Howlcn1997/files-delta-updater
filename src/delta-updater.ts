@@ -15,17 +15,16 @@ class DeltaUpdater extends EventEmitter {
   remoteRootUrl: string;
   routerConfig: null | UpdaterConfig;
   clearOldVersion: boolean;
-  channel: string[];
+
   private curRootPath: string;
 
   constructor({ baseRootPath, updateRootPath, remoteRootUrl, clearOldVersion = true, channel = [] }) {
     super();
     this.baseRootPath = baseRootPath;
     this.updateRootPath = updateRootPath;
-    this.remoteRootUrl = remoteRootUrl;
+    this.remoteRootUrl = `${remoteRootUrl}/${channel.join("/")}/`;
     this.routerConfig = null;
     this.clearOldVersion = clearOldVersion;
-    this.channel = channel;
     return createProxy(this, this.handleError.bind(this));
   }
 
@@ -257,11 +256,11 @@ class DeltaUpdater extends EventEmitter {
   }
 
   async requestRemoteFilesJSON(version): Promise<FilesJSON> {
-    return request(this.remoteRootUrl + "/" + this.channel.map((i) => `${i}/`).join("") + `files/${version}.json`);
+    return request(this.remoteRootUrl + `files/${version}.json`);
   }
 
   async requestRemoteVersionJSON(): Promise<VersionJSON> {
-    return request(this.remoteRootUrl + "/" + this.channel.map((i) => `${i}/`).join("") + "version.json");
+    return request(this.remoteRootUrl + "version.json");
   }
 
   async downloadFilesByFilesJSON(filsJSON: FilesJSON, downloadRootDir: string): Promise<string[][]> {

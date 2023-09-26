@@ -1,6 +1,6 @@
 {
   "name": "files-delta-updater",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "author": "Neon",
   "description": "use nodejs to implement local file version updates and only require a file server",
   "main": "dist/index.js",
@@ -25,7 +25,6 @@
   "devDependencies": {
     "@types/node": "^20.6.3",
     "live-server": "^1.2.2",
-    "tsc": "^2.0.4",
     "tsx": "^3.12.10",
     "typescript": "^5.2.2"
   },
