@@ -33,6 +33,7 @@ export interface DeltaUpdaterConfig {
   updateRootPath: string;
   remoteRootUrl: string;
   clearOldVersion?: boolean;
+  checkChannel?: boolean;
   channels?: string[];
 }
 

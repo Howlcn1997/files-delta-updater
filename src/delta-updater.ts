@@ -14,18 +14,27 @@ class DeltaUpdater extends EventEmitter {
   updateRootPath: string;
   remoteRootUrl: string;
   clearOldVersion: boolean;
+  checkChannel: boolean;
   channels: string[];
 
   private curRootPath: string;
   private routerConfig: null | UpdaterConfig;
 
-  constructor({ baseRootPath, updateRootPath, remoteRootUrl, clearOldVersion, channels }: DeltaUpdaterConfig) {
+  constructor({
+    baseRootPath,
+    updateRootPath,
+    remoteRootUrl,
+    channels = [],
+    clearOldVersion = true,
+    checkChannel = true,
+  }: DeltaUpdaterConfig) {
     super();
     this.baseRootPath = baseRootPath;
     this.updateRootPath = updateRootPath;
-    this.remoteRootUrl = `${remoteRootUrl}/${channels.join("/")}/`;
-    this.clearOldVersion = clearOldVersion === undefined ? true : clearOldVersion;
-    this.channels = channels || [];
+    this.channels = channels;
+    this.remoteRootUrl = `${remoteRootUrl}/${this.channels.join("/")}/`;
+    this.clearOldVersion = clearOldVersion;
+    this.checkChannel = checkChannel;
     this.routerConfig = null;
     return createProxy(this, this.handleError.bind(this));
   }
@@ -300,7 +309,7 @@ class DeltaUpdater extends EventEmitter {
 
     return Promise.all(
       filsJSON.files.map(([relativePath]) => {
-        const assetUrl = `${this.remoteRootUrl}/versions/${filsJSON.version}/${relativePath}`;
+        const assetUrl = `${this.remoteRootUrl}versions/${filsJSON.version}/${relativePath}`;
         const downloadFilepath = path.join(downloadVersionDir, relativePath);
 
         return download(assetUrl, path.dirname(downloadFilepath)).then(() => {
