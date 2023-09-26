@@ -7,24 +7,26 @@ import { request } from "./utils/request";
 import { createProxy } from "./utils/create-proxy";
 import { generateFilesJSON, diffFilesJSON } from "./utils/tools";
 
-import { BuildConfigJson, FilesJSON, UpdaterConfig, VersionJSON } from "./utils/types";
+import { BuildConfigJson, DeltaUpdaterConfig, FilesJSON, UpdaterConfig, VersionJSON } from "./utils/types";
 
 class DeltaUpdater extends EventEmitter {
   baseRootPath: string;
   updateRootPath: string;
   remoteRootUrl: string;
-  routerConfig: null | UpdaterConfig;
   clearOldVersion: boolean;
+  channels: string[];
 
   private curRootPath: string;
+  private routerConfig: null | UpdaterConfig;
 
-  constructor({ baseRootPath, updateRootPath, remoteRootUrl, clearOldVersion = true, channel = [] }) {
+  constructor({ baseRootPath, updateRootPath, remoteRootUrl, clearOldVersion, channels }: DeltaUpdaterConfig) {
     super();
     this.baseRootPath = baseRootPath;
     this.updateRootPath = updateRootPath;
-    this.remoteRootUrl = `${remoteRootUrl}/${channel.join("/")}/`;
+    this.remoteRootUrl = `${remoteRootUrl}/${channels.join("/")}/`;
+    this.clearOldVersion = clearOldVersion === undefined ? true : clearOldVersion;
+    this.channels = channels || [];
     this.routerConfig = null;
-    this.clearOldVersion = clearOldVersion;
     return createProxy(this, this.handleError.bind(this));
   }
 
@@ -64,16 +66,14 @@ class DeltaUpdater extends EventEmitter {
 
   async getCurRootPath(): Promise<string> {
     if (this.curRootPath) return this.curRootPath;
-    const updateConfigPath = path.join(this.updateRootPath, "config.json");
-    const updateConfigExist = await fsx.pathExists(updateConfigPath);
+
+    const updateConfigExist = await fsx.pathExists(path.join(this.updateRootPath, "config.json"));
     if (updateConfigExist) {
       this.curRootPath = this.updateRootPath;
       return this.updateRootPath;
     }
 
-    const baseConfigPath = path.join(this.baseRootPath, "config.json");
-    const baseConfigExist = await fsx.pathExists(baseConfigPath);
-
+    const baseConfigExist = await fsx.pathExists(path.join(this.baseRootPath, "config.json"));
     if (baseConfigExist) {
       this.curRootPath = this.baseRootPath;
       return this.baseRootPath;
@@ -83,11 +83,35 @@ class DeltaUpdater extends EventEmitter {
     // throw new Error("No base config.json exists");
   }
 
+  async checkChannelMatchAndReset() {
+    let config = await this.getConfigJson();
+
+    if (config.channels.join("/") === this.channels.join("/")) return "match";
+
+    console.warn(`channels has changed, old: ${config.channels.join("/")}, new: ${this.channels.join("/")}`);
+    // baseRootPath是热更新的基础依赖，不能清理
+    // 若当前目录是baseRootPath，则跳过清理
+    if (this.baseRootPath === this.updateRootPath || (await this.getCurRootPath()) === this.baseRootPath) {
+      return "skip";
+    }
+
+    console.info("clean old update files and update status");
+    await fsx.remove(this.updateRootPath);
+    this.routerConfig = null;
+    this.curRootPath = undefined;
+    await this.getCurRootPath();
+    await this.getConfigJson();
+    return "reset";
+  }
+
   async checkUpdate() {
-    const [routerConfig, remoteVersionJSON] = await Promise.all([
-      this.getConfigJson(),
-      this.requestRemoteVersionJSON(),
-    ]);
+    let [routerConfig, remoteVersionJSON] = await Promise.all([this.getConfigJson(), this.requestRemoteVersionJSON()]);
+
+    const action = await this.checkChannelMatchAndReset();
+    if (action === "skip") {
+      console.log("cannot clear baseRootPath dir, so skip checkUpdate");
+      return "skip";
+    }
 
     if (routerConfig.nextVersion === remoteVersionJSON.version) {
       this.emit("usable", {
@@ -152,6 +176,7 @@ class DeltaUpdater extends EventEmitter {
         baseVersion: versions[0],
         curVersion: versions[0],
         nextVersion: "",
+        channels: this.channels,
         onErrorVersions: [],
       };
     }
@@ -250,16 +275,17 @@ class DeltaUpdater extends EventEmitter {
       await this.buildConfigJson(buildTargetRootPath, {
         ...(await this.getConfigJson()),
         nextVersion,
+        channels: this.channels,
       });
     }
     this.emit("downloaded", { currentVersion, nextVersion, nextVersionDir });
   }
 
-  async requestRemoteFilesJSON(version): Promise<FilesJSON> {
+  requestRemoteFilesJSON(version): Promise<FilesJSON> {
     return request(this.remoteRootUrl + `files/${version}.json`);
   }
 
-  async requestRemoteVersionJSON(): Promise<VersionJSON> {
+  requestRemoteVersionJSON(): Promise<VersionJSON> {
     return request(this.remoteRootUrl + "version.json");
   }
 
@@ -297,8 +323,12 @@ class DeltaUpdater extends EventEmitter {
 
   // 获取最新版本地址,
   async getLatestVersionAfterSwitch(): Promise<string> {
-    const latestVersion = await this.switchToLatestVersion();
-    return latestVersion;
+    const action = await this.checkChannelMatchAndReset();
+    if (action === "match") {
+      return await this.switchToLatestVersion();
+    }
+    const configJSON = await this.getConfigJson();
+    return path.join(this.baseRootPath, "versions", configJSON.baseVersion);
   }
 
   private handleError(error) {

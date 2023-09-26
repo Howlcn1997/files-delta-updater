@@ -10,7 +10,13 @@ const remoteRootUrl = "http://localhost:8080";
 
 liveServer.start({ port: 8080, root: mockOSSDir, open: false });
 
-const updater = new DeltaUpdater({ baseRootPath, updateRootPath, remoteRootUrl, clearOldVersion: true });
+const updater = new DeltaUpdater({
+  baseRootPath,
+  updateRootPath,
+  remoteRootUrl,
+  clearOldVersion: true,
+  channels: ["x86", "beta"],
+});
 
 // 无可用更新
 updater.on("not-available", (...args) => {

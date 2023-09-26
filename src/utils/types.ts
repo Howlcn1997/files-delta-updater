@@ -15,6 +15,7 @@ export interface VersionJSON {
 export interface UpdaterConfig {
   baseVersion: string; // 安装包初始版本
   curVersion: string; // 安装包当前版本
+  channels: string[]; // 渠道
   nextVersion: string; // 安装包下一个版本
   onErrorVersions: string[]; // 历史错误版本
 }
@@ -22,14 +23,17 @@ export interface UpdaterConfig {
 export interface BuildConfigJson {
   baseVersion: string; // 安装包初始版本
   curVersion: string; // 安装包当前版本
+  channels: string[]; // 渠道
   nextVersion?: string; // 安装包下一个版本
   onErrorVersions?: string[]; // 历史错误版本
 }
 
-export interface DeltaUpdater {
-  localRootPath: string;
+export interface DeltaUpdaterConfig {
+  baseRootPath: string;
+  updateRootPath: string;
   remoteRootUrl: string;
   clearOldVersion?: boolean;
+  channels?: string[];
 }
 
 export interface BuildReleaseOptions {

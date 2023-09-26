@@ -16,5 +16,6 @@ const version = "1.0.0.1";
     source,
     version,
     dist: path.join(__dirname, "local"),
+    channels: ["x86", "beta"],
   });
 })();

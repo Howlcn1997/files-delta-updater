@@ -31,7 +31,16 @@ export async function buildRelease({
 }
 
 // 构建本地资源
-export async function buildLocal({ source, dist, version, emptyDist = true }) {
+export async function buildLocal({
+  source,
+  dist,
+  version,
+  channels = [],
+  emptyDist = true,
+}: {
+  [key: string]: any;
+  channels: string[];
+}) {
   if (emptyDist) {
     await fsx.emptyDir(dist);
   }
@@ -45,6 +54,7 @@ export async function buildLocal({ source, dist, version, emptyDist = true }) {
     curVersion: version,
     nextVersion: "",
     onErrorVersions: [],
+    channels,
   };
   await fsx.writeJSON(path.join(dist, "config.json"), content);
 }
