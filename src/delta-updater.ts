@@ -257,11 +257,11 @@ class DeltaUpdater extends EventEmitter {
   }
 
   async requestRemoteFilesJSON(version): Promise<FilesJSON> {
-    return request(this.remoteRootUrl + "/" + this.channel.map((i) => `${i}/`) + `files/${version}.json`);
+    return request(this.remoteRootUrl + "/" + this.channel.map((i) => `${i}/`).join("") + `files/${version}.json`);
   }
 
   async requestRemoteVersionJSON(): Promise<VersionJSON> {
-    return request(this.remoteRootUrl + "/" + this.channel.map((i) => `${i}/`) + "version.json");
+    return request(this.remoteRootUrl + "/" + this.channel.map((i) => `${i}/`).join("") + "version.json");
   }
 
   async downloadFilesByFilesJSON(filsJSON: FilesJSON, downloadRootDir: string): Promise<string[][]> {
