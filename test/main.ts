@@ -10,12 +10,14 @@ const remoteRootUrl = "http://localhost:8080";
 
 liveServer.start({ port: 8080, root: mockOSSDir, open: false });
 
+const os = process.argv.slice(2)[0] || "x86";
+
 const updater = new DeltaUpdater({
   baseRootPath,
   updateRootPath,
   remoteRootUrl,
   clearOldVersion: true,
-  channels: ["x86", "beta"],
+  channels: [os, "beta"],
 });
 
 // 无可用更新
@@ -41,5 +43,5 @@ updater.on("error", (...args) => {
   console.log("error:", args[0]);
 });
 
-updater.checkUpdate();
 updater.getLatestVersionAfterSwitch().then((address) => console.log("当前版本地址：", address));
+updater.checkUpdate();
