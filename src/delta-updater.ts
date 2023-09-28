@@ -147,7 +147,7 @@ class DeltaUpdater extends EventEmitter {
     const isExist = await fsx.pathExists(configJSONPath);
 
     if (isExist) {
-      this.curConfig = await await fsx.readJSON(configJSONPath);
+      this.curConfig = await fsx.readJSON(configJSONPath);
     } else {
       const versions = await fsx.readdir(path.join(this.baseRootPath, "versions"));
       this.curConfig = {
@@ -351,7 +351,8 @@ class DeltaUpdater extends EventEmitter {
     if (configJSON.channels.join("/") === this.channels.join("/")) {
       return await this.switchToLatestVersion();
     }
-    return path.join(this.baseRootPath, "versions", configJSON.baseVersion);
+    const baseConfig = await fsx.readJSON(path.join(this.baseRootPath, "config.json"));
+    return path.join(this.baseRootPath, "versions", baseConfig.baseVersion);
   }
 }
 
