@@ -6,5 +6,5 @@ export function stringHash(
 ): string {
   const hash = crypto.createHash("sha512");
   hash.update(str);
-  return hash.digest(outputEncoding);
+  return hash.digest(outputEncoding).substring(0, 16);
 }

@@ -9,8 +9,8 @@
       "request": "launch",
       "name": "Test Main",
       "skipFiles": ["<node_internals>/**"],
-      "runtimeExecutable": "${workspaceFolder}\\node_modules\\.bin\\tsx",
-      "program": "${workspaceFolder}\\test\\main.ts"
+      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/tsx",
+      "program": "${workspaceFolder}/test/main.ts"
     }
   ]
 }

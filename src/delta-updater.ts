@@ -370,6 +370,7 @@ class DeltaUpdater extends EventEmitter {
       staging,
       key: stringHash(`${staging}-${version}-${this.hashKey}`),
     };
+    await fsx.ensureDir(this.updateRootPath);
     await fsx.writeJSON(stagingConfPath, conf);
     return staging;
   }
