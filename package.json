@@ -25,7 +25,7 @@
   "devDependencies": {
     "@types/node": "^20.6.3",
     "live-server": "^1.2.2",
-    "tsx": "^3.12.10",
+    "tsx": "^3.13.0",
     "typescript": "^5.2.2"
   },
   "license": "ISC",
