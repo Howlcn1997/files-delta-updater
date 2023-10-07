@@ -10,6 +10,7 @@ export interface DiffFilesJSON extends FilesJSON {
 export interface VersionJSON {
   version: string;
   stagingPercentage?: number;
+  [key: string]: any;
 }
 
 export interface UpdaterConfig {
