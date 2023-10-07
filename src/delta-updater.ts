@@ -368,7 +368,10 @@ class DeltaUpdater extends EventEmitter {
     }
     // 灰度判断
     const stagingPercentage = await this.getStagingPercentage(remoteVersionJSON.version);
-    if (stagingPercentage > (remoteVersionJSON.stagingPercentage || 100)) {
+    if (
+      stagingPercentage >
+      (remoteVersionJSON.stagingPercentage === undefined ? 100 : remoteVersionJSON.stagingPercentage)
+    ) {
       this.emit("not-available", {
         reason: "not-available--staging",
         message: "Not in grayRelease range",
