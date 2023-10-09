@@ -8,7 +8,17 @@ const updateRootPath = path.join(__dirname, "mock-upd");
 const mockOSSDir = path.join(__dirname, "mock-oss");
 const remoteRootUrl = "http://localhost:8080";
 
-liveServer.start({ port: 8080, root: mockOSSDir, open: false });
+liveServer.start({
+  port: 8080,
+  root: mockOSSDir,
+  open: false,
+  middleware: [
+    (req, res, next) => {
+      const delay = 6000; // 响应延迟时间（毫秒）
+      setTimeout(next, delay); // 等待一定时间后继续处理请求
+    },
+  ],
+});
 
 const os = process.argv.slice(2)[0] || "x86";
 

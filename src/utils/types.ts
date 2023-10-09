@@ -1,3 +1,5 @@
+import { AxiosRequestConfig } from "axios";
+
 export interface FilesJSON {
   version: string;
   timestamp: number;
@@ -36,6 +38,7 @@ export interface DeltaUpdaterConfig {
   hashKey?: string;
   clearOldVersion?: boolean;
   channels?: string[];
+  requestConfig?: AxiosRequestConfig;
 }
 
 export interface BuildReleaseOptions {

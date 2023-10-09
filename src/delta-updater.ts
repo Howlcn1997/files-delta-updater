@@ -9,6 +9,7 @@ import { generateFilesJSON, diffFilesJSON } from "./utils/tools";
 
 import { BuildConfigJson, DeltaUpdaterConfig, FilesJSON, UpdaterConfig, VersionJSON } from "./utils/types";
 import { stringHash } from "./utils/hash";
+import { AxiosRequestConfig } from "axios";
 
 class DeltaUpdater extends EventEmitter {
   baseRootPath: string;
@@ -20,6 +21,7 @@ class DeltaUpdater extends EventEmitter {
   private hashKey: string;
   private curRootPath: string;
   private curConfig: null | UpdaterConfig;
+  private requestConfig: null | AxiosRequestConfig;
 
   constructor({
     baseRootPath,
@@ -28,6 +30,7 @@ class DeltaUpdater extends EventEmitter {
     hashKey = "",
     channels = [],
     clearOldVersion = true,
+    requestConfig = { timeout: 5000 },
   }: DeltaUpdaterConfig) {
     super();
     this.baseRootPath = baseRootPath;
@@ -37,6 +40,7 @@ class DeltaUpdater extends EventEmitter {
     this.hashKey = hashKey;
     this.clearOldVersion = clearOldVersion;
     this.curConfig = null;
+    this.requestConfig = requestConfig;
     return createProxy(this, this.handleError.bind(this));
   }
 
@@ -265,11 +269,11 @@ class DeltaUpdater extends EventEmitter {
   }
 
   private requestRemoteFilesJSON(version): Promise<FilesJSON> {
-    return request(this.remoteRootUrl + `files/${version}.json`);
+    return request(this.remoteRootUrl + `files/${version}.json`, this.requestConfig);
   }
 
   private requestRemoteVersionJSON(): Promise<VersionJSON> {
-    return request(this.remoteRootUrl + "version.json");
+    return request(this.remoteRootUrl + "version.json", this.requestConfig);
   }
 
   private async downloadFilesByFilesJSON(filsJSON: FilesJSON, downloadRootDir: string): Promise<string[][]> {
