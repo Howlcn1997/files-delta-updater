@@ -1,4 +1,4 @@
-import { AxiosRequestConfig } from "axios";
+import { AxiosInstance, AxiosStatic } from "axios";
 
 export interface FilesJSON {
   version: string;
@@ -38,7 +38,7 @@ export interface DeltaUpdaterConfig {
   hashKey?: string;
   clearOldVersion?: boolean;
   channels?: string[];
-  requestConfig?: AxiosRequestConfig;
+  requestInstanceCreator?: (axios: AxiosStatic) => AxiosInstance;
 }
 
 export interface BuildReleaseOptions {

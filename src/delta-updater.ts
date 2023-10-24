@@ -2,14 +2,14 @@ import { EventEmitter } from "events";
 import path from "path";
 import fsx from "fs-extra";
 import download from "download";
+import axios, { AxiosInstance } from "axios";
+import { requestInstanceCreate } from "./utils/request";
 
-import { request } from "./utils/request";
 import { createProxy } from "./utils/create-proxy";
 import { generateFilesJSON, diffFilesJSON } from "./utils/tools";
 
 import { BuildConfigJson, DeltaUpdaterConfig, FilesJSON, UpdaterConfig, VersionJSON } from "./utils/types";
 import { stringHash } from "./utils/hash";
-import { AxiosRequestConfig } from "axios";
 
 class DeltaUpdater extends EventEmitter {
   baseRootPath: string;
@@ -21,7 +21,7 @@ class DeltaUpdater extends EventEmitter {
   private hashKey: string;
   private curRootPath: string;
   private curConfig: null | UpdaterConfig;
-  private requestConfig: null | AxiosRequestConfig;
+  private requestInstance: AxiosInstance;
 
   constructor({
     baseRootPath,
@@ -30,7 +30,7 @@ class DeltaUpdater extends EventEmitter {
     hashKey = "",
     channels = [],
     clearOldVersion = true,
-    requestConfig = { timeout: 5000 },
+    requestInstanceCreator = requestInstanceCreate,
   }: DeltaUpdaterConfig) {
     super();
     this.baseRootPath = baseRootPath;
@@ -40,7 +40,7 @@ class DeltaUpdater extends EventEmitter {
     this.hashKey = hashKey;
     this.clearOldVersion = clearOldVersion;
     this.curConfig = null;
-    this.requestConfig = requestConfig;
+    this.requestInstance = requestInstanceCreator(axios);
     return createProxy(this, this.handleError.bind(this));
   }
 
@@ -269,11 +269,11 @@ class DeltaUpdater extends EventEmitter {
   }
 
   private requestRemoteFilesJSON(version): Promise<FilesJSON> {
-    return request(this.remoteRootUrl + `files/${version}.json`, this.requestConfig);
+    return this.requestInstance(this.remoteRootUrl + `files/${version}.json`);
   }
 
   private requestRemoteVersionJSON(): Promise<VersionJSON> {
-    return request(this.remoteRootUrl + "version.json", this.requestConfig);
+    return this.requestInstance(this.remoteRootUrl + "version.json");
   }
 
   private async downloadFilesByFilesJSON(filsJSON: FilesJSON, downloadRootDir: string): Promise<string[][]> {

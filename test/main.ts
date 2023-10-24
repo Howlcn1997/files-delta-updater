@@ -14,7 +14,7 @@ liveServer.start({
   open: false,
   middleware: [
     (req, res, next) => {
-      const delay = 6000; // 响应延迟时间（毫秒）
+      const delay = 4000; // 响应延迟时间（毫秒）
       setTimeout(next, delay); // 等待一定时间后继续处理请求
     },
   ],
@@ -28,6 +28,18 @@ const updater = new DeltaUpdater({
   remoteRootUrl,
   clearOldVersion: true,
   channels: [os, "beta"],
+  requestInstanceCreator: function (axios) {
+    const requestInstance = axios.create({ timeout: 6000 });
+    requestInstance.interceptors.response.use((response) => response.data);
+    requestInstance.interceptors.request.use((config) => {
+      if (config.url?.endsWith("/version.json")) {
+        config.url += `?v=${123}`;
+      }
+      console.log(config);
+      return config;
+    });
+    return requestInstance;
+  },
 });
 
 // 无可用更新
