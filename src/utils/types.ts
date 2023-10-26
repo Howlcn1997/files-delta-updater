@@ -39,6 +39,7 @@ export interface DeltaUpdaterConfig {
   clearOldVersion?: boolean;
   channels?: string[];
   requestInstanceCreator?: (axios: AxiosStatic) => AxiosInstance;
+  versionAvailable?: (a: string, b: string) => boolean;
 }
 
 export interface BuildReleaseOptions {

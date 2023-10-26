@@ -91,3 +91,10 @@ export function calculateFileMD5(filePath: string): Promise<string> {
     input.pipe(hash);
   });
 }
+/**
+ * 判断远程版本是否可用, 默认版本号不同即可用
+ * @returns {Boolean} true: 可用 false: 不可用
+ */
+export function defaultVersionAvailable(localVersion: string, remoteVersion: string): boolean {
+  return localVersion !== remoteVersion;
+}

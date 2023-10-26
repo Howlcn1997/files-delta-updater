@@ -6,7 +6,7 @@ import axios, { AxiosInstance } from "axios";
 import { requestInstanceCreate } from "./utils/request";
 
 import { createProxy } from "./utils/create-proxy";
-import { generateFilesJSON, diffFilesJSON } from "./utils/tools";
+import { generateFilesJSON, diffFilesJSON, defaultVersionAvailable } from "./utils/tools";
 
 import { BuildConfigJson, DeltaUpdaterConfig, FilesJSON, UpdaterConfig, VersionJSON } from "./utils/types";
 import { stringHash } from "./utils/hash";
@@ -22,6 +22,7 @@ class DeltaUpdater extends EventEmitter {
   private curRootPath: string;
   private curConfig: null | UpdaterConfig;
   private requestInstance: AxiosInstance;
+  private versionAvailable: (a: string, b: string) => boolean;
 
   constructor({
     baseRootPath,
@@ -31,6 +32,7 @@ class DeltaUpdater extends EventEmitter {
     channels = [],
     clearOldVersion = true,
     requestInstanceCreator = requestInstanceCreate,
+    versionAvailable = defaultVersionAvailable,
   }: DeltaUpdaterConfig) {
     super();
     this.baseRootPath = baseRootPath;
@@ -41,6 +43,7 @@ class DeltaUpdater extends EventEmitter {
     this.clearOldVersion = clearOldVersion;
     this.curConfig = null;
     this.requestInstance = requestInstanceCreator(axios);
+    this.versionAvailable = versionAvailable;
     return createProxy(this, this.handleError.bind(this));
   }
 
@@ -363,7 +366,7 @@ class DeltaUpdater extends EventEmitter {
     }
 
     // 版本判断
-    if (curConfig.curVersion === remoteVersionJSON.version) {
+    if (!this.versionAvailable(curConfig.curVersion, remoteVersionJSON.version)) {
       this.emit("not-available", {
         reason: "not-available--version",
         message: `Already the latest version[${curConfig.curVersion}]`,
