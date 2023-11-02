@@ -1,7 +1,7 @@
 
 # files-delta-updater
 
-你可以使用`files-delta-updater`在仅仅使用静态资源服务器来实现资源的差量更新
+你可以使用`files-detla-updater`在仅仅使用静态资源服务器的条件下来实现资源的差量更新
 
 ## 安装
 
@@ -48,16 +48,16 @@ deltaUpdater.getLatestVersionAfterSwitch().then(({path, version}) => {
 
 返回： `Promise<{ version: string; path: string; }>`
 
-`version` 本地可用的最新版本
-`path` 本地可用的最新版本所在目录
+- `version` 本地可用的最新版本
+- `path` 本地可用的最新版本所在目录
 
 ##### 方法：`checkUpdate(forceCheck)`
 
-参数：`forceCheck`
+参数：`forceCheck`<br>
 默认值`true`，检查步骤中的渠道检查不通过时则继续更新流程，否则反之。
 
-返回： `checkResult` 
-`checkResult` string 值的枚举：
+返回： 
+- `checkResult` 枚举值
 	- `not-available--channels`
 	- `not-available--version`
 	- `not-available--staging`
@@ -71,56 +71,56 @@ deltaUpdater.getLatestVersionAfterSwitch().then(({path, version}) => {
 
 ##### 事件：`not-available`
 
-无可用更新时触发；
+无可用更新时触发；<br>
 返回：
 - `result`
 	- `reason` 
 	- `message`
 
-`reason`值的枚举：
+- `reason`值的枚举：
 	- `not-available--channels` 渠道检查不满足条件
 	- `not-available--version` 版本检查不满足条件
 	- `not-available--staging` 灰度更新检查不满足条件
 
 ##### 事件：`download`
 
-资源正在下载时触发；
+资源正在下载时触发；<br>
 返回：
 - `result`
 	- `total` 
 	- `process`
 
- `total` 带下载资源总数
- `process` 下载进度
+ - `total` 带下载资源总数
+ - `process` 下载进度
 
 ##### 事件：`downloaded`
 
-资源下载完成时触发；
+资源下载完成时触发；<br>
 返回：
 - `result`
 	- `currentVersion` 
 	- `nextVersion`
 	- `nextVersionDir`
 
- `currentVersion` 当前版本号
- `nextVersion` 下一个版本号
- `nextVersionDir` 下一个版本所在目录
+ - `currentVersion` 当前版本号
+ - `nextVersion` 下一个版本号
+ - `nextVersionDir` 下一个版本所在目录
 ##### 事件：`usable`
 
-可用资源已下载至本地且已生成最新版本资源文件时触发；
+可用资源已下载至本地且已生成最新版本资源文件时触发；<br>
 返回：
 - `result`
 	- `currentVersion` 
 	- `nextVersion`
 	- `nextVersionDir`
 
- `currentVersion` 当前版本号
- `nextVersion` 下一个版本号
- `nextVersionDir` 下一个版本所在目录
+ - `currentVersion` 当前版本号
+ - `nextVersion` 下一个版本号
+ - `nextVersionDir` 下一个版本所在目录
 
 ##### 事件：`error`
 
-更新器运行报错时触发；
+更新器运行报错时触发；<br>
 返回：
 - `Error`
 
