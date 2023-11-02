@@ -357,7 +357,7 @@ class DeltaUpdater extends EventEmitter {
       delete _remoteJson.version;
       delete _remoteJson.stagingPercentage;
       this.emit("usable", {
-        curVersion: curConfig.curVersion,
+        currentVersion: curConfig.curVersion,
         nextVersion: curConfig.nextVersion,
         nextVersionDir: path.join(await this.getCurRootPath(), "versions", curConfig.nextVersion),
         ..._remoteJson,
